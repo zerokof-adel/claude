@@ -47,6 +47,30 @@ $ConfigFile  = Join-Path $env:USERPROFILE '.claude.json'
 # --------------------------------------------------------------------------
 Write-Phase '1/5 Diagnostico'
 
+$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+$isAdmin  = ([Security.Principal.WindowsPrincipal]$identity).IsInRole(
+                [Security.Principal.WindowsBuiltInRole]::Administrator)
+
+Write-Item ("Cuenta / perfil     -> {0} / {1}" -f $identity.Name, $env:USERPROFILE)
+
+if ($isAdmin) {
+    Write-Warning 'Sesion ELEVADA (Administrador). Claude Code no lo requiere y la elevacion es riesgosa:'
+    Write-Warning '  $env:USERPROFILE y el PATH de usuario se resuelven para la cuenta del proceso elevado.'
+    Write-Warning '  Si el UAC elevo con otra cuenta de administrador, el binario y el PATH quedan en el'
+    Write-Warning '  perfil equivocado y "claude" seguira fallando en tu sesion normal.'
+    Write-Warning ('  Verificar que la linea "Cuenta / perfil" corresponda a tu usuario habitual: {0}' -f $identity.Name)
+    Write-Warning '  Recomendado: cerrar esta ventana y reejecutar en PowerShell SIN elevar.'
+} else {
+    Write-Item 'Sesion sin elevar (OK)'
+}
+
+$cwd = (Get-Location).Path
+if ($cwd -like "$env:SystemRoot*") {
+    Write-Warning ("Directorio de trabajo dentro de Windows ({0})." -f $cwd)
+    Write-Warning '  Claude Code trata el directorio actual como el proyecto. Ejecutar "claude" desde una'
+    Write-Warning '  carpeta de trabajo, no desde system32.'
+}
+
 if ([Environment]::Is64BitProcess) {
     Write-Item 'Proceso PowerShell: 64-bit (OK)'
 } else {
