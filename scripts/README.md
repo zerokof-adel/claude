@@ -35,6 +35,16 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Reinstall-ClaudeCode.ps1 -Pur
 - Reiniciar la terminal después de la fase 4: el PATH se lee al iniciar el proceso.
 - No lanzar `claude` desde `C:\Windows\system32`. Claude Code trata el directorio actual como el proyecto.
 
+### Trampas de la consola de Windows
+
+**El proceso se congela a mitad de la instalación.** Si la barra de título pasa de `Windows PowerShell` a `Select Windows PowerShell`, la consola entró en modo de selección (QuickEdit Mode) por un clic o un arrastre dentro de la ventana. El subsistema de consola bloquea la escritura a stdout mientras hay una selección activa, así que cualquier proceso que intente emitir salida queda en espera indefinida, sin timeout ni aviso. Parece un cuelgue; no lo es.
+
+- **Desbloquear**: presionar `Esc` en la ventana. `Enter` también sirve, pero pega la selección al búfer de entrada.
+- **Prevenir**: clic derecho en la barra de título → Propiedades → Opciones → desmarcar *Modo de edición rápida*.
+- **Mejor alternativa**: usar Windows Terminal, donde la selección no suspende el proceso.
+
+**El instalador reporta que el PATH falta.** El instalador nativo no siempre agrega `%USERPROFILE%\.local\bin` al PATH; cuando no lo hace, lo indica en sus *Setup notes* al terminar. La fase 4 del script cubre ese caso. Si se instala manualmente, agregar la ruta a mano y reiniciar la terminal.
+
 ### Casos que el script detecta pero no corrige
 
 - **`Claude.exe` de la app de escritorio en `WindowsApps`**: versiones antiguas de Claude Desktop registran un ejecutable con prioridad de PATH sobre el CLI. El script lo marca como advertencia; la corrección es actualizar Claude Desktop.
